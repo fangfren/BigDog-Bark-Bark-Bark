@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"[COMMAND_PATH]/scripts/notify-if-unfocused.ps1\" -TrustForegroundTerminal",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
