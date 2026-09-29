@@ -2,9 +2,9 @@
 
 **English title: Big Dog, Bark Bark Bark**
 
-一个单文件、免安装的 Windows Codex 完成提示音托盘工具。
+一个极轻量的 Windows Codex 完成提示音开关。原生 C 程序、无托盘、无常驻进程，使用外置 MP3。
 
-GitHub: https://github.com/fangfren/BigDog-Bark-Bark-Bark
+当前版本：**v2.0.0**
 
 [中文](#中文说明) | [English](#english)
 
@@ -12,196 +12,199 @@ GitHub: https://github.com/fangfren/BigDog-Bark-Bark-Bark
 
 ## 中文说明
 
-### 下载与运行
+### v2.0.0 发布说明
 
-下载仓库根目录中的：
+- 从 PowerShell 方案重写为原生 C 程序。
+- 主程序约 `25 KB`，外置 MP3 约 `71 KB`。
+- 移除托盘和后台常驻进程，空闲资源为 `0`。
+- 桌面快捷方式支持 `Ctrl+Alt+B` 快速开关。
+- 关闭时保留 Codex 默认通知行为。
+- 自动迁移并移除旧的 `notify-if-unfocused.ps1` Hook，避免重复播放。
+- 保留 `hooks.json` 中的其他 Hook 和 Computer Use 配置。
+- 内置音频内容约 `2.8 秒`。
+
+### 下载与使用
+
+下载：
+
+```text
+release\BigDogBark-portable.zip
+```
+
+解压后目录中有两个文件：
 
 ```text
 BigDogBark.exe
+codex-complete.mp3
 ```
 
-双击运行即可，不需要安装器，也不需要额外脚本。
+双击 `BigDogBark.exe` 即可，无需安装器。
 
-首次运行会自动完成：
+首次运行会自动：
 
-- 将程序复制到 `%LOCALAPPDATA%\BigDogBark`，保证 Hook 路径稳定。
-- 将内置提示音释放到本地配置目录。
-- 启动右下角系统托盘图标。
+- 将 exe 和 MP3 复制到 `%LOCALAPPDATA%\BigDogBark`。
+- 写入或修复 Codex `Stop` Hook。
+- 创建桌面快捷方式 `Codex 提示音`。
+- 设置快捷键 `Ctrl+Alt+B`。
 - 默认开启自定义提示音。
-- 自动写入或修复 Codex `Stop` Hook。
 
-程序目标为 Windows 10/11 自带的 .NET Framework，无需安装额外运行库。
+重启 Codex 后，在 `/hooks` 中信任一次 `BigDogBark.exe --hook`，配置完成。
 
-### Codex 首次配置
+快速开关使用桌面快捷方式：
 
-1. 双击 `BigDogBark.exe`。
-2. 右下角出现狗爪托盘图标后，重启 Codex。
-3. 在 Codex 中运行 `/hooks`。
-4. 找到 `BigDogBark.exe --hook`，审阅并信任一次。
+- 双击 `Codex 提示音` 快捷方式。
+- 或按 `Ctrl+Alt+B`。
 
-信任完成后，每次 Codex 任务结束都会播放提示音。
+快捷方式名称会随状态变化：
 
-### 托盘使用方法
-
-- 左键单击托盘图标：在自定义提示音和默认通知之间切换。
-- 右键单击托盘图标：打开完整菜单。
-
-托盘菜单包括：
-
-| 菜单 | 作用 |
-| --- | --- |
-| 使用自定义提示音 | 开启自定义音频 |
-| 使用 Codex 默认通知 | 关闭自定义音频 |
-| 试听提示音 | 播放当前提示音 |
-| 更换提示音... | 导入 WAV、MP3、M4A、AAC 或 WMA |
-| 恢复内置提示音 | 恢复程序内置音频 |
-| 安装/修复 Codex Hook | 添加或修复 Codex Hook |
-| 移除 Codex Hook | 只删除本项目添加的 Hook |
-| 开机自动运行 | 控制是否随 Windows 登录启动 |
-| 打开程序目录 | 打开本地配置和音频目录 |
-| 退出 | 关闭托盘程序 |
-
-关闭托盘程序不会删除配置。自定义提示音是否生效仍由开启状态和 Hook 决定。
+```text
+Codex 提示音 - 开启
+Codex 提示音 - 关闭
+```
 
 ### 更换音频
 
-右键托盘图标，选择“更换提示音...”，然后选择音频文件即可。
-
-支持格式：
+替换本地文件：
 
 ```text
-WAV / MP3 / M4A / AAC / WMA
+%LOCALAPPDATA%\BigDogBark\codex-complete.mp3
 ```
 
-导入的音频会复制到本地配置目录，因此原音频移动后也不会失效。
+保持文件名不变即可。下一次 Codex 完成任务时会使用新的 MP3。
 
-内置默认音频为约 `2.84 秒`，最后 `0.2 秒`已经裁掉。
+### Hook 行为
 
-### Hook 说明
-
-程序只会管理自己的 Hook：
+程序只添加自己的 Hook：
 
 ```text
 BigDogBark.exe --hook
 ```
 
-安装或更新时会保留 `hooks.json` 中已有的其他 Hook，并自动生成备份。
+安装和卸载时会：
 
-移除 Hook 时，只会删除本项目的 `BigDogBark.exe --hook`，不会删除其他工具或 Computer Use 的配置。
+- 备份 `hooks.json`。
+- 只删除 `BigDogBark.exe --hook`。
+- 保留其他 Hook 和 Computer Use 配置。
+
+如果不再需要自定义提示音，可以运行卸载命令，恢复为 Codex 系统默认通知。
+
+### 资源占用
+
+- 原生 exe：约 `25 KB`
+- 外置 MP3：约 `71 KB`
+- 空闲常驻内存：`0`
+- Hook 进程：约 `0.1-0.3 秒`退出
+- 音频播放子进程：约 3 秒后退出
 
 ### 卸载
 
-1. 右键托盘图标，选择“移除 Codex Hook”。
-2. 关闭“开机自动运行”。
-3. 选择“退出”。
-4. 删除目录：
+运行：
+
+```powershell
+& "$env:LOCALAPPDATA\BigDogBark\BigDogBark.exe" --uninstall
+```
+
+然后删除：
 
 ```text
 %LOCALAPPDATA%\BigDogBark
 ```
 
-5. 删除下载的 `BigDogBark.exe`。
+如果需要，也可以删除桌面上的 `Codex 提示音` 快捷方式。
 
 ### 从源码构建
 
-开发环境使用 Windows PowerShell 和 .NET Framework 自带的 `csc.exe`。
+需要 MSYS2 `clang64`：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
-构建结果：
+构建脚本会生成：
 
 ```text
-BigDogBark.exe
+release\BigDogBark-portable.zip
 ```
-
-该可执行文件已经内嵌默认音频和托盘图标。
 
 ### 文件结构
 
 ```text
 .
-|-- BigDogBark.exe
 |-- LICENSE
 |-- README.md
+|-- app.rc
 |-- build.ps1
 |-- assets
-|   |-- app-off.ico
 |   |-- app-on.ico
-|   `-- codex-complete.wav
+|   `-- codex-complete.mp3
+|-- release
+|   `-- BigDogBark-portable.zip
 `-- src
-    `-- BigDogBark.cs
+    `-- BigDogBark.c
 ```
 
 ---
 
 ## English
 
+### v2.0.0 Release Notes
+
+- Rewritten from PowerShell to a native C program.
+- The main executable is about `25 KB`; the external MP3 is about `71 KB`.
+- The tray and persistent background process were removed. Idle resource usage is `0`.
+- The desktop shortcut supports `Ctrl+Alt+B` for fast toggling.
+- When disabled, normal Codex notification behavior is preserved.
+- The installer removes the legacy `notify-if-unfocused.ps1` hook to prevent duplicate playback.
+- Other hooks and Computer Use configuration are preserved.
+- The bundled audio is about `2.8 seconds` long.
+
 ### Download and Run
 
 Download:
 
 ```text
-BigDogBark.exe
+release\BigDogBark-portable.zip
 ```
 
-Double-click it. No installer or extra script is required.
-
-On first run, the application automatically:
-
-- Copies itself to `%LOCALAPPDATA%\BigDogBark` so the hook path stays stable.
-- Extracts the embedded default sound into the local configuration directory.
-- Starts a notification-area tray icon.
-- Enables the custom sound by default.
-- Installs or repairs the Codex `Stop` hook.
-
-The executable targets the .NET Framework included with Windows 10/11. No extra runtime installation is required.
-
-### First Codex Setup
-
-1. Double-click `BigDogBark.exe`.
-2. After the paw tray icon appears, restart Codex.
-3. Run `/hooks` in Codex.
-4. Review and trust the `BigDogBark.exe --hook` entry once.
-
-After that, the custom sound plays whenever a Codex turn finishes.
-
-### Tray Usage
-
-- Left-click the tray icon to switch between the custom sound and normal Codex notifications.
-- Right-click the tray icon to open the full menu.
-
-The tray menu includes:
-
-| Menu item | Purpose |
-| --- | --- |
-| Use custom sound | Enable the custom audio |
-| Use Codex default notifications | Disable the custom audio |
-| Preview sound | Play the current sound |
-| Change sound... | Import WAV, MP3, M4A, AAC, or WMA |
-| Restore built-in sound | Restore the embedded audio |
-| Install/repair Codex hook | Add or repair the Codex hook |
-| Remove Codex hook | Remove only this project's hook |
-| Start with Windows | Control automatic startup |
-| Open program folder | Open the local configuration and audio directory |
-| Exit | Close the tray application |
-
-Exiting the tray application does not delete its configuration. The hook state and enabled flag remain in place.
-
-### Changing the Audio
-
-Right-click the tray icon, choose `Change sound...`, and select an audio file.
-
-Supported formats:
+After extraction, the folder contains:
 
 ```text
-WAV / MP3 / M4A / AAC / WMA
+BigDogBark.exe
+codex-complete.mp3
 ```
 
-The selected file is copied into the local configuration directory, so moving the original file later will not break playback.
+Double-click `BigDogBark.exe`. No installer is required.
 
-The embedded default clip is about `2.84 seconds`; its final `0.2 seconds` has been removed.
+On first run, the program automatically:
+
+- Copies the executable and MP3 to `%LOCALAPPDATA%\BigDogBark`.
+- Installs or repairs the Codex `Stop` hook.
+- Creates the `Codex 提示音` desktop shortcut.
+- Assigns the `Ctrl+Alt+B` shortcut key.
+- Enables the custom sound by default.
+
+Restart Codex and trust `BigDogBark.exe --hook` once in `/hooks`.
+
+Use the desktop shortcut or press `Ctrl+Alt+B` to toggle the sound.
+
+The shortcut name changes with the current state:
+
+```text
+Codex 提示音 - 开启
+Codex 提示音 - 关闭
+```
+
+### Change the Audio
+
+Replace:
+
+```text
+%LOCALAPPDATA%\BigDogBark\codex-complete.mp3
+```
+
+Keep the filename unchanged. The next completed Codex turn will use the new MP3.
+
+The bundled clip has its final `0.2 seconds` removed and is about `2.8 seconds` long.
 
 ### Hook Behavior
 
@@ -211,53 +214,67 @@ The application manages only its own hook:
 BigDogBark.exe --hook
 ```
 
-When installing or updating, existing hooks in `hooks.json` are preserved and backed up.
+Installation and removal automatically:
 
-When removing, only the `BigDogBark.exe --hook` entry is deleted. Other tools and Computer Use configuration remain untouched.
+- Back up `hooks.json`.
+- Remove only `BigDogBark.exe --hook`.
+- Preserve other hooks and Computer Use configuration.
+
+When the custom sound is no longer needed, run the uninstall command to return to the default Codex notification behavior.
+
+### Resource Usage
+
+- Native executable: about `25 KB`
+- External MP3: about `71 KB`
+- Persistent memory: `0`
+- Hook process: exits in about `0.1-0.3 seconds`
+- Playback child process: exits after about 3 seconds
 
 ### Uninstall
 
-1. Right-click the tray icon and choose `Remove Codex hook`.
-2. Disable `Start with Windows`.
-3. Choose `Exit`.
-4. Delete:
+Run:
+
+```powershell
+& "$env:LOCALAPPDATA\BigDogBark\BigDogBark.exe" --uninstall
+```
+
+Then delete:
 
 ```text
 %LOCALAPPDATA%\BigDogBark
 ```
 
-5. Delete the downloaded `BigDogBark.exe`.
+You may also delete the `Codex 提示音` desktop shortcut.
 
 ### Build from Source
 
-The build uses Windows PowerShell and the `csc.exe` included with .NET Framework.
+MSYS2 `clang64` is required:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
-Output:
+The build script generates:
 
 ```text
-BigDogBark.exe
+release\BigDogBark-portable.zip
 ```
-
-The executable embeds both the default sound and the tray icons.
 
 ### File Structure
 
 ```text
 .
-|-- BigDogBark.exe
 |-- LICENSE
 |-- README.md
+|-- app.rc
 |-- build.ps1
 |-- assets
-|   |-- app-off.ico
 |   |-- app-on.ico
-|   `-- codex-complete.wav
+|   `-- codex-complete.mp3
+|-- release
+|   `-- BigDogBark-portable.zip
 `-- src
-    `-- BigDogBark.cs
+    `-- BigDogBark.c
 ```
 
 ### License

@@ -1,51 +1,73 @@
-param(
-  [string]$Configuration = 'Release'
-)
+param()
 
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$csc = 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe'
-$source = Join-Path $root 'src\BigDogBark.cs'
-$sound = Join-Path $root 'assets\codex-complete.wav'
-$iconOn = Join-Path $root 'assets\app-on.ico'
-$iconOff = Join-Path $root 'assets\app-off.ico'
-$output = Join-Path $root 'BigDogBark.exe'
+$clangCommand = Get-Command clang.exe -ErrorAction SilentlyContinue
+$windresCommand = Get-Command windres.exe -ErrorAction SilentlyContinue
+$clang = if ($clangCommand) { $clangCommand.Source } else { 'C:\msys64\clang64\bin\clang.exe' }
+$windres = if ($windresCommand) { $windresCommand.Source } else { 'C:\msys64\clang64\bin\windres.exe' }
+$source = Join-Path $root 'src\BigDogBark.c'
+$sound = Join-Path $root 'assets\codex-complete.mp3'
+$resource = Join-Path $root 'app.rc'
+$resourceObject = Join-Path $root 'app.res.o'
+$releaseDirectory = Join-Path $root 'release'
+$output = Join-Path $releaseDirectory 'BigDogBark.exe'
 
-foreach ($path in @($csc, $source, $sound, $iconOn, $iconOff)) {
-  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-    throw "Required file not found: $path"
-  }
+New-Item -ItemType Directory -Path $releaseDirectory -Force | Out-Null
+
+if (-not (Test-Path -LiteralPath $clang -PathType Leaf)) {
+  throw "clang not found: $clang"
+}
+if (-not (Test-Path -LiteralPath $windres -PathType Leaf)) {
+  throw "windres not found: $windres"
 }
 
-Add-Type -AssemblyName PresentationCore
-Add-Type -AssemblyName WindowsBase
-
-$presentationCore = [System.Windows.Media.MediaPlayer].Assembly.Location
-$windowsBase = [System.Windows.Threading.Dispatcher].Assembly.Location
+& $windres --input $resource --output $resourceObject --target pe-x86-64 --include-dir $root
+if ($LASTEXITCODE -ne 0) {
+  throw "Resource compilation failed with exit code $LASTEXITCODE."
+}
 
 $arguments = @(
-  '/nologo',
-  '/target:winexe',
-  '/platform:anycpu',
-  '/optimize+',
-  "/win32icon:$iconOn",
-  "/out:$output",
-  "/resource:$sound,BarkSound",
-  "/resource:$iconOn,IconOn",
-  "/resource:$iconOff,IconOff",
-  '/reference:System.dll',
-  '/reference:System.Core.dll',
-  '/reference:System.Drawing.dll',
-  '/reference:System.Windows.Forms.dll',
-  "/reference:$presentationCore",
-  "/reference:$windowsBase",
-  $source
+  '-std=c11',
+  '-Os',
+  '-ffunction-sections',
+  '-fdata-sections',
+  '-s',
+  '-municode',
+  '-mwindows',
+  '-static',
+  '-Wl,--gc-sections',
+  '-o', $output,
+  $source,
+  $resourceObject,
+  '-lole32',
+  '-loleaut32',
+  '-luuid',
+  '-lshell32',
+  '-lshlwapi',
+  '-lwinmm',
+  '-luser32',
+  '-ladvapi32'
 )
 
-& $csc $arguments
+& $clang $arguments
 if ($LASTEXITCODE -ne 0) {
   throw "Compilation failed with exit code $LASTEXITCODE."
 }
 
-Get-Item -LiteralPath $output | Select-Object FullName, Length, LastWriteTime
+if (Test-Path -LiteralPath $resourceObject) {
+  Remove-Item -LiteralPath $resourceObject -Force
+}
+
+Copy-Item -LiteralPath $sound -Destination (Join-Path $releaseDirectory 'codex-complete.mp3') -Force
+
+$archive = Join-Path $releaseDirectory 'BigDogBark-portable.zip'
+if (Test-Path -LiteralPath $archive) {
+  Remove-Item -LiteralPath $archive -Force
+}
+Compress-Archive -Path (Join-Path $releaseDirectory 'BigDogBark.exe'),(Join-Path $releaseDirectory 'codex-complete.mp3') -DestinationPath $archive
+
+Remove-Item -LiteralPath (Join-Path $releaseDirectory 'BigDogBark.exe'),(Join-Path $releaseDirectory 'codex-complete.mp3') -Force
+
+Get-Item -LiteralPath $archive | Select-Object FullName, Length, LastWriteTime
