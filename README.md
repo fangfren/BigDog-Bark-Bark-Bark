@@ -3,6 +3,7 @@
 **English title: Big Dog, Bark Bark Bark**
 
 一个极轻量的 Windows Codex 完成提示音开关。原生 C 程序、无托盘、无常驻进程，使用外置 MP3。
+mp3来源=“https://v.douyin.com/yC5JBpb0V8s/ 复制此链接，打开Dou音搜索，直接观看视频！”
 
 当前版本：**v2.0.0**
 

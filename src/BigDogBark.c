@@ -175,6 +175,35 @@ static void show_message(const wchar_t* text, UINT flags) {
   MessageBoxW(NULL, text, kProductName, flags);
 }
 
+static void write_stdout_text(const char* text) {
+  HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+  if (output == NULL || output == INVALID_HANDLE_VALUE) {
+    return;
+  }
+
+  DWORD written = 0;
+  WriteFile(output, text, (DWORD)strlen(text), &written, NULL);
+}
+
+static void drain_stdin_pipe(void) {
+  HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+  if (input == NULL || input == INVALID_HANDLE_VALUE) {
+    return;
+  }
+
+  if (GetFileType(input) != FILE_TYPE_PIPE) {
+    return;
+  }
+
+  char buffer[4096];
+  while (WaitForSingleObject(input, 50) == WAIT_OBJECT_0) {
+    DWORD read = 0;
+    if (!ReadFile(input, buffer, sizeof(buffer), &read, NULL) || read == 0) {
+      break;
+    }
+  }
+}
+
 static BOOL find_sound_near_executable(wchar_t* soundPath, size_t count) {
   wchar_t moduleDirectory[PATH_BUFFER_SIZE];
   wchar_t parentDirectory[PATH_BUFFER_SIZE];
@@ -401,7 +430,7 @@ static const char* kInstallScript =
     "$stop += [pscustomobject]@{\n"
     "  hooks = @([pscustomobject]@{\n"
     "    type = 'command'\n"
-    "    command = ('\"' + $exe + '\" --hook')\n"
+    "    command = ('cmd.exe /d /s /c \"\"' + $exe + '\" --hook\"')\n"
     "    timeout = 5\n"
     "  })\n"
     "}\n"
@@ -590,6 +619,9 @@ static int run_toggle(void) {
 }
 
 static int run_hook(void) {
+  drain_stdin_pipe();
+  write_stdout_text("{}\n");
+
   if (!is_enabled()) {
     return 0;
   }
