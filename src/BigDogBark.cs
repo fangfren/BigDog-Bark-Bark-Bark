@@ -25,7 +25,7 @@ namespace BigDogBark
     {
         private const string ProductName = "大狗大狗叫叫叫";
         private const string EnglishName = "Big Dog, Bark Bark Bark";
-        private const string RepositoryUrl = "https://github.com/fangfren/-";
+        private const string RepositoryUrl = "https://github.com/fangfren/BigDog-Bark-Bark-Bark";
         private const string MutexName = "BigDogBark.Tray.SingleInstance";
         private const string StartupRegistryName = "BigDogBark";
 

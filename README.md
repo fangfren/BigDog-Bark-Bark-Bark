@@ -4,6 +4,8 @@
 
 一个单文件、免安装的 Windows Codex 完成提示音托盘工具。
 
+GitHub: https://github.com/fangfren/BigDog-Bark-Bark-Bark
+
 [中文](#中文说明) | [English](#english)
 
 ---
