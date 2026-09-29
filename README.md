@@ -2,324 +2,262 @@
 
 **English title: Big Dog, Bark Bark Bark**
 
-Windows Codex completion-sound hook with a desktop toggle.
+一个单文件、免安装的 Windows Codex 完成提示音托盘工具。
 
-[中文说明](#中文说明) | [English](#english)
+[中文](#中文说明) | [English](#english)
 
 ---
 
 ## 中文说明
 
-### 工作原理
+### 下载与运行
 
-项目通过 Codex 的 `Stop` Hook 在每轮任务结束时执行一个 PowerShell 脚本。
-
-- 开关开启：播放 `assets\codex-complete.mp3`。
-- 开关关闭：Hook 立即退出，保留 Codex 默认通知行为。
-- 音频播放放在独立隐藏进程中，Hook 会马上结束，不会因为音频较长而超时。
-- 项目不修改 Codex 的 `notify` 配置，因此不会影响 Computer Use 等已有回调。
-
-开关状态由 `scripts\sound-enabled` 标记文件控制：
-
-- 文件存在：自定义提示音开启。
-- 文件不存在：自定义提示音关闭。
-
-### 环境要求
-
-- Windows 10 或 Windows 11。
-- Windows PowerShell 5.1 或更高版本。
-- 已安装 Codex。
-
-### 安装
-
-1. 将项目放在一个长期保留的目录。
-2. 在项目根目录打开 PowerShell，运行：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 codex
-```
-
-3. 重启 Codex。
-4. 在 Codex 中运行 `/hooks`，审阅并信任 `Stop` Hook。
-5. 创建桌面快捷开关。推荐使用项目自带的一键脚本：
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Create-DesktopShortcut.ps1
-```
-
-运行成功后，终端会显示：
+下载仓库根目录中的：
 
 ```text
-Desktop shortcut created successfully.
+BigDogBark.exe
 ```
 
-这时桌面上会出现“Codex 提示音 - 开启”或“Codex 提示音 - 关闭”快捷方式。
+双击运行即可，不需要安装器，也不需要额外脚本。
 
-如果你想手工创建，按下面的步骤操作：
+首次运行会自动完成：
 
-1. 打开项目文件夹，进入 `scripts` 目录。
-2. 在文件资源管理器顶部地址栏中复制完整路径。
-3. 在桌面空白处右键，选择“新建” -> “快捷方式”。
-4. 在“请键入对象的位置”中粘贴下面这一行，并把 `<项目完整路径>` 替换成你刚刚复制的路径：
+- 将程序复制到 `%LOCALAPPDATA%\BigDogBark`，保证 Hook 路径稳定。
+- 将内置提示音释放到本地配置目录。
+- 启动右下角系统托盘图标。
+- 默认开启自定义提示音。
+- 自动写入或修复 Codex `Stop` Hook。
 
-```text
-powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "<项目完整路径>\scripts\CodexSoundToggle.ps1"
-```
+程序目标为 Windows 10/11 自带的 .NET Framework，无需安装额外运行库。
 
-5. 点击“下一步”。
-6. 快捷方式名称填写：
+### Codex 首次配置
 
-```text
-Codex 提示音 - 开启
-```
+1. 双击 `BigDogBark.exe`。
+2. 右下角出现狗爪托盘图标后，重启 Codex。
+3. 在 Codex 中运行 `/hooks`。
+4. 找到 `BigDogBark.exe --hook`，审阅并信任一次。
 
-7. 点击“完成”。
-8. 如果桌面上没有马上显示，按 `F5` 刷新桌面。
+信任完成后，每次 Codex 任务结束都会播放提示音。
 
-手工创建时，名称必须使用 `Codex 提示音 - 开启`，这样开关脚本才能在开启和关闭状态之间自动改名。
+### 托盘使用方法
 
-安装后不要随意移动项目目录，因为 Hook 和快捷方式会引用该目录。
+- 左键单击托盘图标：在自定义提示音和默认通知之间切换。
+- 右键单击托盘图标：打开完整菜单。
 
-### 使用方法
+托盘菜单包括：
 
-双击桌面上的“Codex 提示音”快捷方式，会打开一个小窗口：
+| 菜单 | 作用 |
+| --- | --- |
+| 使用自定义提示音 | 开启自定义音频 |
+| 使用 Codex 默认通知 | 关闭自定义音频 |
+| 试听提示音 | 播放当前提示音 |
+| 更换提示音... | 导入 WAV、MP3、M4A、AAC 或 WMA |
+| 恢复内置提示音 | 恢复程序内置音频 |
+| 安装/修复 Codex Hook | 添加或修复 Codex Hook |
+| 移除 Codex Hook | 只删除本项目添加的 Hook |
+| 开机自动运行 | 控制是否随 Windows 登录启动 |
+| 打开程序目录 | 打开本地配置和音频目录 |
+| 退出 | 关闭托盘程序 |
 
-- 开启：使用自定义 MP3。
-- 关闭：跳过自定义 MP3，使用 Codex 默认通知。
-
-快捷方式名称会随状态变化：
-
-- `Codex 提示音 - 开启.lnk`
-- `Codex 提示音 - 关闭.lnk`
-
-关闭窗口不会改变状态，只有点击窗口中的按钮才会切换。
+关闭托盘程序不会删除配置。自定义提示音是否生效仍由开启状态和 Hook 决定。
 
 ### 更换音频
 
-直接替换：
+右键托盘图标，选择“更换提示音...”，然后选择音频文件即可。
+
+支持格式：
 
 ```text
-assets\codex-complete.mp3
+WAV / MP3 / M4A / AAC / WMA
 ```
 
-文件名保持不变即可。替换音频不需要重新安装或重新信任 Hook，下一次任务结束时会自动使用新音频。
+导入的音频会复制到本地配置目录，因此原音频移动后也不会失效。
 
-当前 Hook 超时默认是 5 秒。建议使用不超过 4 秒的短音频；如果音频更长，请修改：
+内置默认音频为约 `2.84 秒`，最后 `0.2 秒`已经裁掉。
+
+### Hook 说明
+
+程序只会管理自己的 Hook：
 
 ```text
-%USERPROFILE%\.codex\hooks.json
+BigDogBark.exe --hook
 ```
 
-把：
+安装或更新时会保留 `hooks.json` 中已有的其他 Hook，并自动生成备份。
 
-```json
-"timeout": 5
-```
+移除 Hook 时，只会删除本项目的 `BigDogBark.exe --hook`，不会删除其他工具或 Computer Use 的配置。
 
-调整为：
+### 卸载
+
+1. 右键托盘图标，选择“移除 Codex Hook”。
+2. 关闭“开机自动运行”。
+3. 选择“退出”。
+4. 删除目录：
 
 ```text
-音频时长向上取整 + 2 秒
+%LOCALAPPDATA%\BigDogBark
 ```
 
-### 关闭与卸载
+5. 删除下载的 `BigDogBark.exe`。
 
-只关闭自定义声音：
+### 从源码构建
+
+开发环境使用 Windows PowerShell 和 .NET Framework 自带的 `csc.exe`。
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\CodexSoundToggle.ps1 -NoGui -Action off
+powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
-重新开启：
+构建结果：
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\CodexSoundToggle.ps1 -NoGui -Action on
+```text
+BigDogBark.exe
 ```
 
-完整卸载：
-
-1. 关闭自定义声音。
-2. 从 `%USERPROFILE%\.codex\hooks.json` 删除本项目的 `Stop` Hook。
-3. 删除桌面快捷方式。
-4. 删除项目目录。
+该可执行文件已经内嵌默认音频和托盘图标。
 
 ### 文件结构
 
 ```text
 .
+|-- BigDogBark.exe
+|-- LICENSE
 |-- README.md
-|-- install.ps1
+|-- build.ps1
 |-- assets
-|   `-- codex-complete.mp3
-|-- scripts
-|   |-- CodexSoundToggle.ps1
-|   |-- Create-DesktopShortcut.ps1
-|   |-- notify-if-unfocused.ps1
-|   `-- Play-CodexSound.ps1
-`-- templates
-    `-- codex
-        `-- hooks.windows.json
+|   |-- app-off.ico
+|   |-- app-on.ico
+|   `-- codex-complete.wav
+`-- src
+    `-- BigDogBark.cs
 ```
-
-### 来源
-
-基础方案来自 [Helias/ai-notify](https://github.com/Helias/ai-notify)，按 MIT License 使用和修改。
 
 ---
 
 ## English
 
-### How It Works
+### Download and Run
 
-This project uses a Codex `Stop` hook to run a PowerShell script whenever a turn completes.
-
-- Enabled: play `assets\codex-complete.mp3`.
-- Disabled: exit immediately and keep the normal Codex notification behavior.
-- Audio playback runs in a separate hidden process, so the hook returns immediately and does not time out.
-- The project does not modify Codex's `notify` setting, so existing callbacks such as Computer Use remain intact.
-
-The toggle is controlled by `scripts\sound-enabled`:
-
-- The file exists: the custom sound is enabled.
-- The file does not exist: the custom sound is disabled.
-
-### Requirements
-
-- Windows 10 or Windows 11.
-- Windows PowerShell 5.1 or newer.
-- Codex installed.
-
-### Installation
-
-1. Keep this project in a permanent directory.
-2. Open PowerShell in the project root and run:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 codex
-```
-
-3. Restart Codex.
-4. Run `/hooks` in Codex, review the `Stop` hook, and trust it.
-5. Create the desktop toggle shortcut. The recommended method is the built-in helper:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Create-DesktopShortcut.ps1
-```
-
-When it succeeds, the terminal displays:
+Download:
 
 ```text
-Desktop shortcut created successfully.
+BigDogBark.exe
 ```
 
-The desktop will then contain either `Codex 提示音 - 开启` or `Codex 提示音 - 关闭`.
+Double-click it. No installer or extra script is required.
 
-To create the shortcut manually:
+On first run, the application automatically:
 
-1. Open the project folder and go into the `scripts` directory.
-2. Copy the full path from the File Explorer address bar.
-3. Right-click an empty area of the desktop and select `New` -> `Shortcut`.
-4. In the location field, paste the following line and replace `<PROJECT_ROOT>` with the full path you copied:
+- Copies itself to `%LOCALAPPDATA%\BigDogBark` so the hook path stays stable.
+- Extracts the embedded default sound into the local configuration directory.
+- Starts a notification-area tray icon.
+- Enables the custom sound by default.
+- Installs or repairs the Codex `Stop` hook.
 
-```text
-powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "<PROJECT_ROOT>\scripts\CodexSoundToggle.ps1"
-```
+The executable targets the .NET Framework included with Windows 10/11. No extra runtime installation is required.
 
-5. Click `Next`.
-6. Use this shortcut name:
+### First Codex Setup
 
-```text
-Codex 提示音 - 开启
-```
+1. Double-click `BigDogBark.exe`.
+2. After the paw tray icon appears, restart Codex.
+3. Run `/hooks` in Codex.
+4. Review and trust the `BigDogBark.exe --hook` entry once.
 
-7. Click `Finish`.
-8. If the shortcut does not appear immediately, press `F5` on the desktop.
+After that, the custom sound plays whenever a Codex turn finishes.
 
-The name must be `Codex 提示音 - 开启` so the toggle can rename it automatically when switching between on and off.
+### Tray Usage
 
-Do not move the project directory after installation because the hook and shortcut reference that location.
+- Left-click the tray icon to switch between the custom sound and normal Codex notifications.
+- Right-click the tray icon to open the full menu.
 
-### Usage
+The tray menu includes:
 
-Double-click the desktop shortcut to open the toggle window:
+| Menu item | Purpose |
+| --- | --- |
+| Use custom sound | Enable the custom audio |
+| Use Codex default notifications | Disable the custom audio |
+| Preview sound | Play the current sound |
+| Change sound... | Import WAV, MP3, M4A, AAC, or WMA |
+| Restore built-in sound | Restore the embedded audio |
+| Install/repair Codex hook | Add or repair the Codex hook |
+| Remove Codex hook | Remove only this project's hook |
+| Start with Windows | Control automatic startup |
+| Open program folder | Open the local configuration and audio directory |
+| Exit | Close the tray application |
 
-- On: use the custom MP3.
-- Off: skip the custom MP3 and use normal Codex notifications.
-
-The shortcut name changes with the current state:
-
-- `Codex 提示音 - 开启.lnk`
-- `Codex 提示音 - 关闭.lnk`
-
-Closing the window does not change the state. Click the button to toggle it.
+Exiting the tray application does not delete its configuration. The hook state and enabled flag remain in place.
 
 ### Changing the Audio
 
-Replace:
+Right-click the tray icon, choose `Change sound...`, and select an audio file.
+
+Supported formats:
 
 ```text
-assets\codex-complete.mp3
+WAV / MP3 / M4A / AAC / WMA
 ```
 
-Keep the filename unchanged. Replacing the file does not require reinstalling or trusting the hook again.
+The selected file is copied into the local configuration directory, so moving the original file later will not break playback.
 
-The default hook timeout is 5 seconds. Prefer a clip no longer than about 4 seconds. For a longer clip, edit:
+The embedded default clip is about `2.84 seconds`; its final `0.2 seconds` has been removed.
+
+### Hook Behavior
+
+The application manages only its own hook:
 
 ```text
-%USERPROFILE%\.codex\hooks.json
+BigDogBark.exe --hook
 ```
 
-Change:
+When installing or updating, existing hooks in `hooks.json` are preserved and backed up.
 
-```json
-"timeout": 5
-```
+When removing, only the `BigDogBark.exe --hook` entry is deleted. Other tools and Computer Use configuration remain untouched.
 
-to:
+### Uninstall
+
+1. Right-click the tray icon and choose `Remove Codex hook`.
+2. Disable `Start with Windows`.
+3. Choose `Exit`.
+4. Delete:
 
 ```text
-rounded-up audio duration + 2 seconds
+%LOCALAPPDATA%\BigDogBark
 ```
 
-### Disable or Uninstall
+5. Delete the downloaded `BigDogBark.exe`.
 
-Disable only the custom sound:
+### Build from Source
+
+The build uses Windows PowerShell and the `csc.exe` included with .NET Framework.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\CodexSoundToggle.ps1 -NoGui -Action off
+powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
-Enable it again:
+Output:
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\CodexSoundToggle.ps1 -NoGui -Action on
+```text
+BigDogBark.exe
 ```
 
-Full uninstall:
-
-1. Disable the custom sound.
-2. Remove this project's `Stop` hook from `%USERPROFILE%\.codex\hooks.json`.
-3. Delete the desktop shortcut.
-4. Delete the project directory.
+The executable embeds both the default sound and the tray icons.
 
 ### File Structure
 
 ```text
 .
+|-- BigDogBark.exe
+|-- LICENSE
 |-- README.md
-|-- install.ps1
+|-- build.ps1
 |-- assets
-|   `-- codex-complete.mp3
-|-- scripts
-|   |-- CodexSoundToggle.ps1
-|   |-- Create-DesktopShortcut.ps1
-|   |-- notify-if-unfocused.ps1
-|   `-- Play-CodexSound.ps1
-`-- templates
-    `-- codex
-        `-- hooks.windows.json
+|   |-- app-off.ico
+|   |-- app-on.ico
+|   `-- codex-complete.wav
+`-- src
+    `-- BigDogBark.cs
 ```
 
-### Credits
+### License
 
-The base approach comes from [Helias/ai-notify](https://github.com/Helias/ai-notify), used and modified under the MIT License.
+MIT License.
