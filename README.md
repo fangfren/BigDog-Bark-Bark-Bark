@@ -5,7 +5,7 @@
 一个极轻量的 Windows Codex 完成提示音开关。原生 C 程序、无托盘、无常驻进程，使用外置 MP3。
 mp3来源=“https://v.douyin.com/yC5JBpb0V8s/ 复制此链接，打开Dou音搜索，直接观看视频！”
 
-当前版本：**v2.0.0**
+当前版本：**v2.0.1**
 
 [中文](#中文说明) | [English](#english)
 
@@ -13,9 +13,11 @@ mp3来源=“https://v.douyin.com/yC5JBpb0V8s/ 复制此链接，打开Dou音搜
 
 ## 中文说明
 
-### v2.0.0 发布说明
+### v2.0.1 发布说明
 
 - 从 PowerShell 方案重写为原生 C 程序。
+- 修复 Codex Hook 命令解析问题，使用 `cmd.exe /d /s /c` 包装启动命令。
+- Hook 输出合法 JSON，并安全读取 Codex 传入的 stdin。
 - 主程序约 `25 KB`，外置 MP3 约 `71 KB`。
 - 移除托盘和后台常驻进程，空闲资源为 `0`。
 - 桌面快捷方式支持 `Ctrl+Alt+B` 快速开关。
@@ -148,9 +150,11 @@ release\BigDogBark-portable.zip
 
 ## English
 
-### v2.0.0 Release Notes
+### v2.0.1 Release Notes
 
 - Rewritten from PowerShell to a native C program.
+- Fixed Codex hook command parsing by wrapping the executable with `cmd.exe /d /s /c`.
+- The hook now emits valid JSON and safely drains stdin from Codex.
 - The main executable is about `25 KB`; the external MP3 is about `71 KB`.
 - The tray and persistent background process were removed. Idle resource usage is `0`.
 - The desktop shortcut supports `Ctrl+Alt+B` for fast toggling.
